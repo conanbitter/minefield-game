@@ -18,6 +18,12 @@ void OnLoad() {
     field_init(9, 9, 10);
     field_draw(BORDER, BORDER);
     grfBeginDraw();
+    grfSetLineColor(36, 70, 93);
+    grfMoveTo(19, 19);
+    grfLineTo(9 * FIELD_CELL_SIZE + 20, 19);
+    grfLineTo(9 * FIELD_CELL_SIZE + 20, 9 * FIELD_CELL_SIZE + 20);
+    grfLineTo(19, 9 * FIELD_CELL_SIZE + 20);
+    grfLineTo(19, 19);
     for (int y = 0;y < 9;y++) {
         for (int x = 0;x < 9;x++) {
             int c = rand() % 15;

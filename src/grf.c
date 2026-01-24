@@ -27,6 +27,10 @@ static HBRUSH backgroundBrush;
 static uint8_t bgrR = 0;
 static uint8_t bgrG = 0;
 static uint8_t bgrB = 0;
+static HPEN linePen;
+static uint8_t penR = 0;
+static uint8_t penG = 0;
+static uint8_t penB = 0;
 static HINSTANCE hInst;
 static HWND hWindow;
 
@@ -114,6 +118,20 @@ void grfSetFillColor(uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
+void grfSetLineColor(uint8_t r, uint8_t g, uint8_t b) {
+    if (isLoaded) {
+        DeleteObject(linePen);
+        linePen = CreatePen(PS_SOLID, 0, RGB(r, g, b));
+        SelectObject(backbufferHdc, linePen);
+    } else {
+        penR = r;
+        penG = g;
+        penB = b;
+    }
+}
+
+
+
 static GRFImage __grfLoadImage(const wchar_t* filename, int fromRes) {
     GRFImage result = (GRFImage)malloc(sizeof(__GRFImageData));
     if (fromRes) {
@@ -186,7 +204,7 @@ int grfStart(HINSTANCE hInstance, const wchar_t* title, int width, int height) {
         .left = winX,
         .top = winY,
         .right = winX + width,
-        .bottom = winY + height};
+        .bottom = winY + height };
 
     AdjustWindowRectEx(&winRect, WIN_STYLE, FALSE, WS_EX_OVERLAPPEDWINDOW);
 
@@ -290,7 +308,7 @@ void grfClear() {
 void grfFill(GRFRect* area) {
     if (!isDrawing) return;
     if (area) {
-        RECT rect = {area->x, area->y, area->x + area->w, area->y + area->h};
+        RECT rect = { area->x, area->y, area->x + area->w, area->y + area->h };
         FillRect(backbufferHdc, &rect, backgroundBrush);
         if (rect.left < paintRect.left) {
             paintRect.left = rect.left;
@@ -307,6 +325,14 @@ void grfFill(GRFRect* area) {
     } else {
         grfClear();
     }
+}
+
+void grfMoveTo(int x, int y) {
+    MoveToEx(backbufferHdc, x, y, NULL);
+}
+
+void grfLineTo(int x, int y) {
+    LineTo(backbufferHdc, x, y);
 }
 
 void grfEnableUpdate(int speed) {
@@ -328,75 +354,77 @@ void grfDisableUpdate() {
 
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-        case WM_CREATE:
-            backgroundBrush = CreateSolidBrush(RGB(bgrR, bgrG, bgrB));
-            HDC wdc = GetDC(hwnd);
-            InitBackbuffer(wdc, clientWidth, clientHeight);
-            isLoaded = 1;
-            callbackOnLoad();
-            return 0;
+    case WM_CREATE:
+        backgroundBrush = CreateSolidBrush(RGB(bgrR, bgrG, bgrB));
+        HDC wdc = GetDC(hwnd);
+        InitBackbuffer(wdc, clientWidth, clientHeight);
+        linePen = CreatePen(PS_SOLID, 0, RGB(penR, penG, penB));
+        SelectObject(backbufferHdc, linePen);
+        isLoaded = 1;
+        callbackOnLoad();
+        return 0;
 
-        case WM_CLOSE:
-            callbackOnExit();
-            FreeBackbuffer();
-            DestroyWindow(hwnd);
-            return 0;
+    case WM_CLOSE:
+        callbackOnExit();
+        FreeBackbuffer();
+        DestroyWindow(hwnd);
+        return 0;
 
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
 
-        case WM_PAINT: {
-            PAINTSTRUCT paintPs;
-            HDC paintHdc;
+    case WM_PAINT: {
+        PAINTSTRUCT paintPs;
+        HDC paintHdc;
 
-            paintHdc = BeginPaint(hWindow, &paintPs);
-            BitBlt(paintHdc,
-                   paintPs.rcPaint.left,
-                   paintPs.rcPaint.top,
-                   paintPs.rcPaint.right - paintPs.rcPaint.left,
-                   paintPs.rcPaint.bottom - paintPs.rcPaint.top,
-                   backbufferHdc,
-                   paintPs.rcPaint.left,
-                   paintPs.rcPaint.top,
-                   SRCCOPY);
-            EndPaint(hWindow, &paintPs);
+        paintHdc = BeginPaint(hWindow, &paintPs);
+        BitBlt(paintHdc,
+            paintPs.rcPaint.left,
+            paintPs.rcPaint.top,
+            paintPs.rcPaint.right - paintPs.rcPaint.left,
+            paintPs.rcPaint.bottom - paintPs.rcPaint.top,
+            backbufferHdc,
+            paintPs.rcPaint.left,
+            paintPs.rcPaint.top,
+            SRCCOPY);
+        EndPaint(hWindow, &paintPs);
+    }
+                 return 0;
+    case WM_LBUTTONDOWN:
+        callbackOnMouseDown(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_RBUTTONDOWN:
+        callbackOnMouseDown(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_MBUTTONDOWN:
+        callbackOnMouseDown(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_LBUTTONUP:
+        callbackOnMouseUp(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_RBUTTONUP:
+        callbackOnMouseUp(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_MBUTTONUP:
+        callbackOnMouseUp(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_MOUSEMOVE:
+        callbackOnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_KEYDOWN:
+        if (!(lParam & (0x1 << 30))) {
+            callbackOnKeyDown(wParam);
         }
-            return 0;
-        case WM_LBUTTONDOWN:
-            callbackOnMouseDown(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_RBUTTONDOWN:
-            callbackOnMouseDown(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_MBUTTONDOWN:
-            callbackOnMouseDown(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_LBUTTONUP:
-            callbackOnMouseUp(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_RBUTTONUP:
-            callbackOnMouseUp(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_MBUTTONUP:
-            callbackOnMouseUp(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_MOUSEMOVE:
-            callbackOnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            return 0;
-        case WM_KEYDOWN:
-            if (!(lParam & (0x1 << 30))) {
-                callbackOnKeyDown(wParam);
-            }
-            return 0;
-        case WM_KEYUP:
-            callbackOnKeyUp(wParam);
-            return 0;
-        case WM_TIMER:
-            if (wParam == TIMER_UPDATE) {
-                callbackOnUpdate();
-            }
-            return 0;
+        return 0;
+    case WM_KEYUP:
+        callbackOnKeyUp(wParam);
+        return 0;
+    case WM_TIMER:
+        if (wParam == TIMER_UPDATE) {
+            callbackOnUpdate();
+        }
+        return 0;
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -417,7 +445,7 @@ void grfSetFrameSize(int width, int height) {
         .left = 0,
         .top = 0,
         .right = width,
-        .bottom = height};
+        .bottom = height };
     AdjustWindowRectEx(&newRect, WIN_STYLE, FALSE, WS_EX_OVERLAPPEDWINDOW);
     int new_width = newRect.right - newRect.left;
     int new_height = newRect.bottom - newRect.top;

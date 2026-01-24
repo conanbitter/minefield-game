@@ -251,5 +251,8 @@ void grfDrawImage(GRFImage image, int x, int y, const GRFRect* fragment);
 void grfSetFillColor(uint8_t r, uint8_t g, uint8_t b);
 void grfClear();
 void grfFill(GRFRect* area);
+void grfSetLineColor(uint8_t r, uint8_t g, uint8_t b);
+void grfMoveTo(int x, int y);
+void grfLineTo(int x, int y);
 
 #endif
