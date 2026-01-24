@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "field.h"
 #include "atlas.h"
 
@@ -17,7 +18,18 @@ void OnLoad() {
     field_init(9, 9, 10);
     field_draw(BORDER, BORDER);
     grfBeginDraw();
-    atlas_draw(10, 10, NULL);
+    for (int y = 0;y < 9;y++) {
+        for (int x = 0;x < 9;x++) {
+            int c = rand() % 15;
+            if (c == 9) {
+                atlas_draw(x * FIELD_CELL_SIZE + 20, y * FIELD_CELL_SIZE + 20, &CELL_MINE);
+            } else if (c >= 10) {
+                atlas_draw(x * FIELD_CELL_SIZE + 20, y * FIELD_CELL_SIZE + 20, &CELL_CLOSED);
+            } else {
+                atlas_draw(x * FIELD_CELL_SIZE + 20, y * FIELD_CELL_SIZE + 20, &CELL_DIGITS[c]);
+            }
+        }
+    }
     grfEndDraw();
 }
 
