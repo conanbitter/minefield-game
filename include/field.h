@@ -7,7 +7,13 @@
 #define FIELD_MAX_WIDTH (30)
 #define FIELD_MAX_HEIGHT (16)
 
+#define FIELD_OFFSET_X (20)
+#define FIELD_OFFSET_Y (90)
+
 void field_init(int width, int height, int mines);
-void field_draw(int offset_x, int offset_y);
+void field_populate(int mines, int exclude_x, int exclude_y);
+void field_draw_cell(int x, int y);
+int field_width;
+int field_height;
 
 #endif
