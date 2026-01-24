@@ -12,7 +12,12 @@
 
 HINSTANCE app_instance;
 
+#define STATE_NORMAL (0)
+
 int current_difficulty = 1;
+int state = STATE_NORMAL;
+int selected_x = 0;
+int selected_y = 0;
 
 void new_game(int difficulty) {
     switch (difficulty) {
@@ -41,6 +46,7 @@ void new_game(int difficulty) {
         }
     }
     grfEndDraw();
+    state = STATE_NORMAL;
 }
 
 
@@ -50,6 +56,25 @@ void OnLoad() {
 }
 
 void OnMouseDown(int button, int x, int y) {
+    int fx, fy;
+    switch (button)
+    {
+    case GRF_BUTTON_LEFT:
+        if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
+            //grfBeginDraw();
+            //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
+            //grfEndDraw();
+            field_open(fx, fy);
+        }
+        break;
+    case GRF_BUTTON_RIGHT:
+        if (field_coord(x, y, &fx, &fy)) {
+            field_mark(fx, fy);
+        }
+
+    default:
+        break;
+    }
 }
 
 void OnMouseUp(int button, int x, int y) {

@@ -18,7 +18,7 @@ const GRFRect CELL_DIGITS[9] = {
 const GRFRect CELL_MINE = { .x = 442, .y = 1, .w = 48, .h = 48 };
 const GRFRect CELL_CLOSED = { .x = 406, .y = 133, .w = 48, .h = 48 };
 const GRFRect CELL_CLOSED_DOWN = { .x = 455, .y = 133, .w = 48, .h = 48 };
-const GRFRect CELL_FLAG = { .x = 4062, .y = 182, .w = 48, .h = 48 };
+const GRFRect CELL_FLAG = { .x = 406, .y = 182, .w = 48, .h = 48 };
 const GRFRect CELL_MARK = { .x = 455, .y = 182, .w = 48, .h = 48 };
 
 const GRFRect DIFFICULTY_UP[3] = {

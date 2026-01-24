@@ -1,7 +1,6 @@
 #include "field.h"
 #include "atlas.h"
 #include <string.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
@@ -33,7 +32,7 @@ void field_init(int width, int height, int mines) {
     for (int i = 0;i < width * height;i++) {
         field[i].is_mine = false;
         field[i].mines = 0;
-        field[i].status = CELL_STATUS_OPENED;
+        field[i].status = CELL_STATUS_CLOSED;
     }
     srand(time(NULL));
 }
@@ -97,5 +96,47 @@ void field_draw_cell(int x, int y) {
 
     default:
         break;
+    }
+}
+
+bool field_coord(int screen_x, int screen_y, int* field_x, int* field_y) {
+    if (screen_x < FIELD_OFFSET_X ||
+        screen_x >= FIELD_OFFSET_X + field_width * FIELD_CELL_SIZE ||
+        screen_y < FIELD_OFFSET_Y ||
+        screen_y >= FIELD_OFFSET_Y + field_height * FIELD_CELL_SIZE) {
+        return false;
+    }
+    *field_x = (screen_x - FIELD_OFFSET_X) / FIELD_CELL_SIZE;
+    *field_y = (screen_y - FIELD_OFFSET_Y) / FIELD_CELL_SIZE;
+    return true;
+}
+
+bool field_is_open(int x, int y) {
+    return get_cell(x, y)->status == CELL_STATUS_OPENED;
+}
+
+bool field_is_closed(int x, int y) {
+    return get_cell(x, y)->status == CELL_STATUS_CLOSED;
+}
+
+void field_open(int x, int y) {
+    get_cell(x, y)->status = CELL_STATUS_OPENED;
+    grfBeginDraw();
+    field_draw_cell(x, y);
+    grfEndDraw();
+}
+
+void field_mark(int x, int y) {
+    FieldCell* cell = get_cell(x, y);
+    if (cell->status == CELL_STATUS_CLOSED) {
+        cell->status = CELL_STATUS_FLAGGED;
+        grfBeginDraw();
+        field_draw_cell(x, y);
+        grfEndDraw();
+    } else if (cell->status == CELL_STATUS_FLAGGED) {
+        cell->status = CELL_STATUS_CLOSED;
+        grfBeginDraw();
+        field_draw_cell(x, y);
+        grfEndDraw();
     }
 }
