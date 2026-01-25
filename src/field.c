@@ -119,11 +119,34 @@ bool field_is_closed(int x, int y) {
     return get_cell(x, y)->status == CELL_STATUS_CLOSED;
 }
 
-void field_open(int x, int y) {
-    get_cell(x, y)->status = CELL_STATUS_OPENED;
+int field_open(int x, int y) {
+    int result = RESULT_NORMAL;
+    FieldCell* current = get_cell(x, y);
+    if (current->status != CELL_STATUS_CLOSED && current->status != CELL_STATUS_MARKED) {
+        return result;
+    }
+
     grfBeginDraw();
-    field_draw_cell(x, y);
+    if (current->is_mine) {
+        result = RESULT_LOOSE;
+        for (int my = 0;my < field_height;my++) {
+            for (int mx = 0; mx < field_width; mx++)
+            {
+                FieldCell* minecell = get_cell(mx, my);
+                if (minecell->is_mine) {
+                    minecell->status = CELL_STATUS_OPENED;
+                    field_draw_cell(mx, my);
+                }
+            }
+
+        }
+    } else {
+        current->status = CELL_STATUS_OPENED;
+        field_draw_cell(x, y);
+    }
+
     grfEndDraw();
+    return result;
 }
 
 void field_mark(int x, int y) {

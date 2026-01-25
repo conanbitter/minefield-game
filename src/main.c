@@ -13,6 +13,7 @@
 HINSTANCE app_instance;
 
 #define STATE_NORMAL (0)
+#define STATE_LOOSE (1)
 
 int current_difficulty = 1;
 int state = STATE_NORMAL;
@@ -57,27 +58,48 @@ void OnLoad() {
 
 void OnMouseDown(int button, int x, int y) {
     int fx, fy;
-    switch (button)
-    {
-    case GRF_BUTTON_LEFT:
-        if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
-            //grfBeginDraw();
-            //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
-            //grfEndDraw();
-            field_open(fx, fy);
-        }
-        break;
-    case GRF_BUTTON_RIGHT:
-        if (field_coord(x, y, &fx, &fy)) {
-            field_mark(fx, fy);
-        }
+    if (state == STATE_NORMAL) {
+        switch (button)
+        {
+        case GRF_BUTTON_LEFT:
+            if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
+                //grfBeginDraw();
+                //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
+                //grfEndDraw();
+                //field_open(fx, fy);
+            }
+            break;
+        case GRF_BUTTON_RIGHT:
+            if (field_coord(x, y, &fx, &fy)) {
+                field_mark(fx, fy);
+            }
 
-    default:
-        break;
+        default:
+            break;
+        }
     }
 }
 
 void OnMouseUp(int button, int x, int y) {
+    int fx, fy;
+    if (state == STATE_NORMAL) {
+        switch (button)
+        {
+        case GRF_BUTTON_LEFT:
+            if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
+                //grfBeginDraw();
+                //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
+                //grfEndDraw();
+                int res = field_open(fx, fy);
+                if (res == RESULT_LOOSE) {
+                    state = STATE_LOOSE;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void OnMouseMove(int x, int y) {
