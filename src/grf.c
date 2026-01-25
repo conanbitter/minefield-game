@@ -329,10 +329,34 @@ void grfFill(GRFRect* area) {
 
 void grfMoveTo(int x, int y) {
     MoveToEx(backbufferHdc, x, y, NULL);
+    if (x < paintRect.left) {
+        paintRect.left = x;
+    }
+    if (x > paintRect.right) {
+        paintRect.right = x;
+    }
+    if (y < paintRect.top) {
+        paintRect.top = y;
+    }
+    if (y > paintRect.bottom) {
+        paintRect.bottom = y;
+    }
 }
 
 void grfLineTo(int x, int y) {
     LineTo(backbufferHdc, x, y);
+    if (x < paintRect.left) {
+        paintRect.left = x;
+    }
+    if (x > paintRect.right) {
+        paintRect.right = x;
+    }
+    if (y < paintRect.top) {
+        paintRect.top = y;
+    }
+    if (y > paintRect.bottom) {
+        paintRect.bottom = y;
+    }
 }
 
 void grfEnableUpdate(int speed) {
