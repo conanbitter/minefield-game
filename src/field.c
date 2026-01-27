@@ -14,10 +14,12 @@ typedef struct FieldCell {
     int mines;
     bool is_mine;
     int status;
+    bool visited;
 } FieldCell;
 
 static FieldCell field[FIELD_MAX_WIDTH * FIELD_MAX_HEIGHT];
 static int field_cells[FIELD_MAX_WIDTH * FIELD_MAX_HEIGHT];
+static bool first_mines = true;
 
 int field_width;
 int field_height;
@@ -88,7 +90,11 @@ void field_draw_cell(int x, int y) {
         break;
     case CELL_STATUS_OPENED:
         if (cell->is_mine) {
-            atlas_draw(cell_x, cell_y, &CELL_MINE);
+            if (first_mines) {
+                atlas_draw(cell_x, cell_y, &CELL_MINE);
+            } else {
+                atlas_draw(cell_x, cell_y, &CELL_MINE_OTHER);
+            }
         } else {
             atlas_draw(cell_x, cell_y, &CELL_DIGITS[cell->mines]);
         }
@@ -119,6 +125,77 @@ bool field_is_closed(int x, int y) {
     return get_cell(x, y)->status == CELL_STATUS_CLOSED;
 }
 
+static propagate(int x, int y) {
+    int cell_count = 1;
+    field_cells[0] = x + y * field_width;
+    for (int i = 0;i < field_width * field_height;i++) {
+        field[i].visited = false;
+    }
+
+    while (cell_count > 0) {
+        int index = field_cells[cell_count - 1];
+        cell_count--;
+        FieldCell* cell = &field[index];
+        if (cell->visited) continue;
+        cell->visited = true;
+        cell->status = CELL_STATUS_OPENED;
+        int x = index % field_width;
+        int y = index / field_width;
+        field_draw_cell(x, y);
+        if (cell->mines == 0) {
+            if (x > 0 && y > 0) {
+                FieldCell* next_cell = get_cell(x - 1, y - 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x - 1 + (y - 1) * field_width;
+                }
+            }
+            if (y > 0) {
+                FieldCell* next_cell = get_cell(x, y - 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x + (y - 1) * field_width;
+                }
+
+            }
+            if (x < field_width - 1 && y > 0) {
+                FieldCell* next_cell = get_cell(x + 1, y - 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x + 1 + (y - 1) * field_width;
+                }
+            }
+            if (x < field_width - 1) {
+                FieldCell* next_cell = get_cell(x + 1, y);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x + 1 + y * field_width;
+                }
+            }
+            if (x < field_width - 1 && y < field_height - 1) {
+                FieldCell* next_cell = get_cell(x + 1, y + 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x + 1 + (y + 1) * field_width;
+                }
+            }
+            if (y < field_height - 1) {
+                FieldCell* next_cell = get_cell(x, y + 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x + (y + 1) * field_width;
+                }
+            }
+            if (x > 0 && y < field_height - 1) {
+                FieldCell* next_cell = get_cell(x - 1, y + 1);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x - 1 + (y + 1) * field_width;
+                }
+            }
+            if (x > 0) {
+                FieldCell* next_cell = get_cell(x - 1, y);
+                if (next_cell->status == CELL_STATUS_CLOSED && !next_cell->is_mine) {
+                    field_cells[cell_count++] = x - 1 + y * field_width;
+                }
+            }
+        }
+    }
+}
+
 int field_open(int x, int y) {
     int result = RESULT_NORMAL;
     FieldCell* current = get_cell(x, y);
@@ -126,14 +203,19 @@ int field_open(int x, int y) {
         return result;
     }
 
+    current->status = CELL_STATUS_OPENED;
+
     grfBeginDraw();
     if (current->is_mine) {
         result = RESULT_LOOSE;
+        first_mines = true;
+        field_draw_cell(x, y);
+        first_mines = false;
         for (int my = 0;my < field_height;my++) {
             for (int mx = 0; mx < field_width; mx++)
             {
                 FieldCell* minecell = get_cell(mx, my);
-                if (minecell->is_mine) {
+                if (minecell->is_mine && minecell->status != CELL_STATUS_OPENED) {
                     minecell->status = CELL_STATUS_OPENED;
                     field_draw_cell(mx, my);
                 }
@@ -141,8 +223,8 @@ int field_open(int x, int y) {
 
         }
     } else {
-        current->status = CELL_STATUS_OPENED;
-        field_draw_cell(x, y);
+        propagate(x, y);
+        //field_draw_cell(x, y);
     }
 
     grfEndDraw();
