@@ -19,6 +19,7 @@ typedef struct FieldCell {
 
 static FieldCell field[FIELD_MAX_WIDTH * FIELD_MAX_HEIGHT];
 static int field_cells[FIELD_MAX_WIDTH * FIELD_MAX_HEIGHT];
+static int cell_count;
 static bool first_mines = true;
 
 int field_width;
@@ -125,9 +126,11 @@ bool field_is_closed(int x, int y) {
     return get_cell(x, y)->status == CELL_STATUS_CLOSED;
 }
 
-static propagate(int x, int y) {
-    int cell_count = 1;
-    field_cells[0] = x + y * field_width;
+static add_cell(int x, int y) {
+    field_cells[cell_count++] = x + y * field_width;
+}
+
+static propagate() {
     for (int i = 0;i < field_width * field_height;i++) {
         field[i].visited = false;
     }
@@ -223,7 +226,9 @@ int field_open(int x, int y) {
 
         }
     } else {
-        propagate(x, y);
+        cell_count = 0;
+        add_cell(x, y);
+        propagate();
         //field_draw_cell(x, y);
     }
 
