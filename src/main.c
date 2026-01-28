@@ -23,16 +23,16 @@ int selected_y = 0;
 void new_game(int difficulty) {
     switch (difficulty) {
     case 1:
-        field_init(9, 9, 10);
+        fieldInit(9, 9, 10);
         break;
     case 2:
-        field_init(16, 16, 40);
+        fieldInit(16, 16, 40);
         break;
     case 3:
-        field_init(16, 16, 40);
+        fieldInit(30, 16, 40);
         break;
     }
-    field_populate(10, 4, 4);
+    fieldPopulate(10, 4, 4);
     grfBeginDraw();
     grfClear();
     grfMoveTo(FIELD_OFFSET_X - 1, FIELD_OFFSET_Y - 1);
@@ -43,7 +43,7 @@ void new_game(int difficulty) {
     for (int y = 0;y < field_height;y++) {
         for (int x = 0;x < field_width;x++) {
             //atlas_draw(x * FIELD_CELL_SIZE + FIELD_OFFSET_X, y * FIELD_CELL_SIZE + FIELD_OFFSET_Y, &CELL_CLOSED);
-            field_draw_cell(x, y);
+            fieldDrawCellXY(x, y);
         }
     }
     grfEndDraw();
@@ -62,7 +62,7 @@ void OnMouseDown(int button, int x, int y) {
         switch (button)
         {
         case GRF_BUTTON_LEFT:
-            if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
+            if (fieldScreenToXY(x, y, &fx, &fy) && fieldIsClosed(fx, fy)) {
                 //grfBeginDraw();
                 //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
                 //grfEndDraw();
@@ -70,8 +70,8 @@ void OnMouseDown(int button, int x, int y) {
             }
             break;
         case GRF_BUTTON_RIGHT:
-            if (field_coord(x, y, &fx, &fy)) {
-                field_mark(fx, fy);
+            if (fieldScreenToXY(x, y, &fx, &fy)) {
+                fieldMark(fx, fy);
             }
 
         default:
@@ -86,11 +86,11 @@ void OnMouseUp(int button, int x, int y) {
         switch (button)
         {
         case GRF_BUTTON_LEFT:
-            if (field_coord(x, y, &fx, &fy) && field_is_closed(fx, fy)) {
+            if (fieldScreenToXY(x, y, &fx, &fy) && fieldIsClosed(fx, fy)) {
                 //grfBeginDraw();
                 //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
                 //grfEndDraw();
-                int res = field_open(fx, fy);
+                int res = fieldOpen(fx, fy);
                 if (res == RESULT_LOOSE) {
                     state = STATE_LOOSE;
                 }

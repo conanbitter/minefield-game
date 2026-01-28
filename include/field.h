@@ -15,15 +15,15 @@
 #define RESULT_WIN (1)
 #define RESULT_LOOSE (2)
 
-void field_init(int width, int height, int mines);
-void field_populate(int mines, int exclude_x, int exclude_y);
-void field_draw_cell(int x, int y);
+void fieldInit(int width, int height, int mines);
+void fieldPopulate(int mines, int exclude_x, int exclude_y);
+void fieldDrawCellXY(int x, int y);
 int field_width;
 int field_height;
-bool field_coord(int screen_x, int screen_y, int* field_x, int* field_y);
-bool field_is_open(int x, int y);
-bool field_is_closed(int x, int y);
-int field_open(int x, int y);
-void field_mark(int x, int y);
+bool fieldScreenToXY(int screen_x, int screen_y, int* field_x, int* field_y);
+bool fieldIsOpen(int x, int y);
+bool fieldIsClosed(int x, int y);
+int fieldOpen(int x, int y);
+void fieldMark(int x, int y);
 
 #endif
