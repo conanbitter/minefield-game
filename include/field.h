@@ -16,14 +16,16 @@
 #define RESULT_LOOSE (2)
 
 void fieldInit(int width, int height, int mines);
-void fieldPopulate(int mines, int exclude_x, int exclude_y);
+void fieldPopulate(int mines, int exclude_cell);
 void fieldDrawCellXY(int x, int y);
+void fieldDrawCellInd(int index);
 int field_width;
 int field_height;
-bool fieldScreenToXY(int screen_x, int screen_y, int* field_x, int* field_y);
-bool fieldIsOpen(int x, int y);
-bool fieldIsClosed(int x, int y);
-int fieldOpen(int x, int y);
-void fieldMark(int x, int y);
+int field_size;
+int fieldCellByScreenXY(int screen_x, int screen_y);
+bool fieldIsOpen(int index);
+bool fieldIsClosed(int index);
+int fieldOpen(int index);
+void fieldMark(int index);
 
 #endif

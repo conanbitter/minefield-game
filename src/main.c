@@ -32,7 +32,7 @@ void new_game(int difficulty) {
         fieldInit(30, 16, 40);
         break;
     }
-    fieldPopulate(10, 4, 4);
+    fieldPopulate(10, 0);
     grfBeginDraw();
     grfClear();
     grfMoveTo(FIELD_OFFSET_X - 1, FIELD_OFFSET_Y - 1);
@@ -40,11 +40,8 @@ void new_game(int difficulty) {
     grfLineTo(field_width * FIELD_CELL_SIZE + FIELD_OFFSET_X, field_height * FIELD_CELL_SIZE + FIELD_OFFSET_Y);
     grfLineTo(FIELD_OFFSET_X - 1, field_height * FIELD_CELL_SIZE + FIELD_OFFSET_Y);
     grfLineTo(FIELD_OFFSET_X - 1, FIELD_OFFSET_Y - 1);
-    for (int y = 0;y < field_height;y++) {
-        for (int x = 0;x < field_width;x++) {
-            //atlas_draw(x * FIELD_CELL_SIZE + FIELD_OFFSET_X, y * FIELD_CELL_SIZE + FIELD_OFFSET_Y, &CELL_CLOSED);
-            fieldDrawCellXY(x, y);
-        }
+    for (int i = 0;i < field_size;i++) {
+        fieldDrawCellInd(i);
     }
     grfEndDraw();
     state = STATE_NORMAL;
@@ -57,25 +54,25 @@ void OnLoad() {
 }
 
 void OnMouseDown(int button, int x, int y) {
-    int fx, fy;
     if (state == STATE_NORMAL) {
-        switch (button)
-        {
-        case GRF_BUTTON_LEFT:
-            if (fieldScreenToXY(x, y, &fx, &fy) && fieldIsClosed(fx, fy)) {
-                //grfBeginDraw();
-                //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
-                //grfEndDraw();
-                //field_open(fx, fy);
-            }
-            break;
-        case GRF_BUTTON_RIGHT:
-            if (fieldScreenToXY(x, y, &fx, &fy)) {
-                fieldMark(fx, fy);
-            }
+        int cell_index = fieldCellByScreenXY(x, y);
+        if (cell_index >= 0) {
+            switch (button)
+            {
+            case GRF_BUTTON_LEFT:
+                if (fieldIsClosed(cell_index)) {
+                    //grfBeginDraw();
+                    //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
+                    //grfEndDraw();
+                    //field_open(fx, fy);
+                }
+                break;
+            case GRF_BUTTON_RIGHT:
+                fieldMark(cell_index);
 
-        default:
-            break;
+            default:
+                break;
+            }
         }
     }
 }
@@ -83,21 +80,24 @@ void OnMouseDown(int button, int x, int y) {
 void OnMouseUp(int button, int x, int y) {
     int fx, fy;
     if (state == STATE_NORMAL) {
-        switch (button)
-        {
-        case GRF_BUTTON_LEFT:
-            if (fieldScreenToXY(x, y, &fx, &fy) && fieldIsClosed(fx, fy)) {
-                //grfBeginDraw();
-                //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
-                //grfEndDraw();
-                int res = fieldOpen(fx, fy);
-                if (res == RESULT_LOOSE) {
-                    state = STATE_LOOSE;
+        int cell_index = fieldCellByScreenXY(x, y);
+        if (cell_index >= 0) {
+            switch (button)
+            {
+            case GRF_BUTTON_LEFT:
+                if (fieldIsClosed(cell_index)) {
+                    //grfBeginDraw();
+                    //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
+                    //grfEndDraw();
+                    int res = fieldOpen(cell_index);
+                    if (res == RESULT_LOOSE) {
+                        state = STATE_LOOSE;
+                    }
                 }
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
         }
     }
 }

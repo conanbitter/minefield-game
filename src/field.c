@@ -27,6 +27,7 @@ static bool first_mines = true;
 
 int field_width;
 int field_height;
+int field_size;
 
 static FieldCell* get_cell(int x, int y) {
     return &field[x + y * field_width];
@@ -35,6 +36,7 @@ static FieldCell* get_cell(int x, int y) {
 void fieldInit(int width, int height, int mines) {
     field_width = width;
     field_height = height;
+    field_size = field_width * field_height;
     for (int y = 0;y < field_height;y++) {
         for (int x = 0;x < field_width;x++) {
             FieldCell* cur = get_cell(x, y);
@@ -60,9 +62,10 @@ void fieldInit(int width, int height, int mines) {
     srand(time(NULL));
 }
 
-void fieldPopulate(int mines, int exclude_x, int exclude_y) {
-    int field_size = field_width * field_height;
+void fieldPopulate(int mines, int exclude_cell) {
     int ind = 0;
+    int exclude_x = field[exclude_cell].x;
+    int exclude_y = field[exclude_cell].y;
     for (int y = 0;y < field_height;y++) {
         for (int x = 0;x < field_width;x++) {
             if (abs(exclude_x - x) <= 1 && abs(exclude_y - y) <= 1) continue;
@@ -140,32 +143,32 @@ void fieldDrawCellCustomXY(int x, int y, GRFRect* image) {
         image);
 }
 
-bool fieldScreenToXY(int screen_x, int screen_y, int* field_x, int* field_y) {
+int fieldCellByScreenXY(int screen_x, int screen_y) {
     if (screen_x < FIELD_OFFSET_X ||
         screen_x >= FIELD_OFFSET_X + field_width * FIELD_CELL_SIZE ||
         screen_y < FIELD_OFFSET_Y ||
         screen_y >= FIELD_OFFSET_Y + field_height * FIELD_CELL_SIZE) {
-        return false;
+        return -1;
     }
-    *field_x = (screen_x - FIELD_OFFSET_X) / FIELD_CELL_SIZE;
-    *field_y = (screen_y - FIELD_OFFSET_Y) / FIELD_CELL_SIZE;
-    return true;
+    int field_x = (screen_x - FIELD_OFFSET_X) / FIELD_CELL_SIZE;
+    int field_y = (screen_y - FIELD_OFFSET_Y) / FIELD_CELL_SIZE;
+    return field_x + field_y * field_width;
 }
 
-bool fieldIsOpen(int x, int y) {
-    return get_cell(x, y)->status == CELL_STATUS_OPENED;
+bool fieldIsOpen(int index) {
+    return field[index].status == CELL_STATUS_OPENED;
 }
 
-bool fieldIsClosed(int x, int y) {
-    return get_cell(x, y)->status == CELL_STATUS_CLOSED;
+bool fieldIsClosed(int index) {
+    return field[index].status == CELL_STATUS_CLOSED;
 }
 
-static addCell(int x, int y) {
-    field_cells[cell_count++] = x + y * field_width;
+static addCell(int index) {
+    field_cells[cell_count++] = index;
 }
 
 static propagate() {
-    for (int i = 0;i < field_width * field_height;i++) {
+    for (int i = 0;i < field_size;i++) {
         field[i].visited = false;
     }
 
@@ -189,9 +192,9 @@ static propagate() {
     }
 }
 
-int fieldOpen(int x, int y) {
+int fieldOpen(int index) {
     int result = RESULT_NORMAL;
-    FieldCell* current = get_cell(x, y);
+    FieldCell* current = &field[index];
     if (current->status != CELL_STATUS_CLOSED && current->status != CELL_STATUS_MARKED) {
         return result;
     }
@@ -204,7 +207,7 @@ int fieldOpen(int x, int y) {
         first_mines = true;
         fieldDrawCell(current);
         first_mines = false;
-        for (int i = 0;i < field_width * field_height;i++) {
+        for (int i = 0;i < field_size;i++) {
             FieldCell* minecell = &field[i];
             if (minecell->is_mine && minecell->status != CELL_STATUS_OPENED) {
                 minecell->status = CELL_STATUS_OPENED;
@@ -213,7 +216,7 @@ int fieldOpen(int x, int y) {
         }
     } else {
         cell_count = 0;
-        addCell(x, y);
+        addCell(index);
         propagate();
         //field_draw_cell(x, y);
     }
@@ -222,8 +225,8 @@ int fieldOpen(int x, int y) {
     return result;
 }
 
-void fieldMark(int x, int y) {
-    FieldCell* cell = get_cell(x, y);
+void fieldMark(int index) {
+    FieldCell* cell = &field[index];
     if (cell->status == CELL_STATUS_CLOSED) {
         cell->status = CELL_STATUS_FLAGGED;
         grfBeginDraw();
