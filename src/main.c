@@ -13,12 +13,14 @@
 HINSTANCE app_instance;
 
 #define STATE_NORMAL (0)
-#define STATE_LOOSE (1)
+#define STATE_GAME_OVER (1)
+#define STATE_BEFORE_OPEN (2)
 
 int current_difficulty = 1;
 int state = STATE_NORMAL;
-int selected_x = 0;
-int selected_y = 0;
+int selected = -1;
+bool hovering = false;
+int other_mouse_button = 0;
 
 void new_game(int difficulty) {
     switch (difficulty) {
@@ -60,41 +62,23 @@ void OnMouseDown(int button, int x, int y) {
             switch (button)
             {
             case GRF_BUTTON_LEFT:
-                if (fieldIsClosed(cell_index)) {
-                    //grfBeginDraw();
-                    //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
-                    //grfEndDraw();
-                    //field_open(fx, fy);
+                if (cellIsClosed(cell_index)) {
+                    grfBeginDraw();
+                    fieldDrawCellCustomInd(cell_index, &CELL_CLOSED_DOWN);
+                    grfEndDraw();
+                    selected = cell_index;
+                    hovering = true;
+                    state = STATE_BEFORE_OPEN;
+                } else if (cellIsOpen(cell_index)) {
+                    // DISCOVER
                 }
                 break;
             case GRF_BUTTON_RIGHT:
-                fieldMark(cell_index);
-
-            default:
-                break;
-            }
-        }
-    }
-}
-
-void OnMouseUp(int button, int x, int y) {
-    int fx, fy;
-    if (state == STATE_NORMAL) {
-        int cell_index = fieldCellByScreenXY(x, y);
-        if (cell_index >= 0) {
-            switch (button)
-            {
-            case GRF_BUTTON_LEFT:
-                if (fieldIsClosed(cell_index)) {
-                    //grfBeginDraw();
-                    //atlas_draw(FIELD_OFFSET_X + fx * FIELD_CELL_SIZE, FIELD_OFFSET_Y + fy * FIELD_CELL_SIZE, &CELL_CLOSED_DOWN);
-                    //grfEndDraw();
-                    int res = fieldOpen(cell_index);
-                    if (res == RESULT_LOOSE) {
-                        state = STATE_LOOSE;
-                    }
+                if (cellIsOpen(cell_index)) {
+                    // DISCOVER
+                } else {
+                    fieldMark(cell_index);
                 }
-                break;
             default:
                 break;
             }
@@ -103,7 +87,50 @@ void OnMouseUp(int button, int x, int y) {
 }
 
 void OnMouseMove(int x, int y) {
+    switch (state)
+    {
+    case STATE_BEFORE_OPEN:
+        int cell_index = fieldCellByScreenXY(x, y);
+        if (cell_index != selected && hovering) {
+            grfBeginDraw();
+            fieldDrawCellInd(selected);
+            grfEndDraw();
+            hovering = false;
+        }
+        if (cell_index == selected && !hovering) {
+            grfBeginDraw();
+            fieldDrawCellCustomInd(cell_index, &CELL_CLOSED_DOWN);
+            grfEndDraw();
+            hovering = true;
+        }
+        break;
+
+    default:
+        break;
+    }
 }
+
+void OnMouseUp(int button, int x, int y) {
+    switch (state)
+    {
+    case STATE_BEFORE_OPEN:
+        if (button == GRF_BUTTON_LEFT) {
+            state = STATE_NORMAL;
+            int cell_index = fieldCellByScreenXY(x, y);
+            if (cell_index == selected) {
+                int res = fieldOpen(cell_index);
+                if (res == RESULT_LOOSE) {
+                    state = STATE_GAME_OVER;
+                }
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
 
 void OnKeyDown(int key) {
 }

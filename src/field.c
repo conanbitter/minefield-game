@@ -143,6 +143,13 @@ void fieldDrawCellCustomXY(int x, int y, GRFRect* image) {
         image);
 }
 
+void fieldDrawCellCustomInd(int index, const  GRFRect* image) {
+    atlas_draw(
+        field[index].x * FIELD_CELL_SIZE + FIELD_OFFSET_X,
+        field[index].y * FIELD_CELL_SIZE + FIELD_OFFSET_Y,
+        image);
+}
+
 int fieldCellByScreenXY(int screen_x, int screen_y) {
     if (screen_x < FIELD_OFFSET_X ||
         screen_x >= FIELD_OFFSET_X + field_width * FIELD_CELL_SIZE ||
@@ -155,11 +162,11 @@ int fieldCellByScreenXY(int screen_x, int screen_y) {
     return field_x + field_y * field_width;
 }
 
-bool fieldIsOpen(int index) {
+bool cellIsOpen(int index) {
     return field[index].status == CELL_STATUS_OPENED;
 }
 
-bool fieldIsClosed(int index) {
+bool cellIsClosed(int index) {
     return field[index].status == CELL_STATUS_CLOSED;
 }
 

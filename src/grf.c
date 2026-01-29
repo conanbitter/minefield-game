@@ -416,21 +416,27 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
     }
                  return 0;
     case WM_LBUTTONDOWN:
+        SetCapture(hwnd);
         callbackOnMouseDown(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_RBUTTONDOWN:
+        SetCapture(hwnd);
         callbackOnMouseDown(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_MBUTTONDOWN:
+        SetCapture(hwnd);
         callbackOnMouseDown(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_LBUTTONUP:
+        ReleaseCapture();
         callbackOnMouseUp(GRF_BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_RBUTTONUP:
+        ReleaseCapture();
         callbackOnMouseUp(GRF_BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_MBUTTONUP:
+        ReleaseCapture();
         callbackOnMouseUp(GRF_BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_MOUSEMOVE:

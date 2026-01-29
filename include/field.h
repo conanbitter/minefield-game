@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "grf.h"
 
 #define FIELD_CELL_SIZE (48)
 #define FIELD_MAX_WIDTH (30)
@@ -19,12 +20,13 @@ void fieldInit(int width, int height, int mines);
 void fieldPopulate(int mines, int exclude_cell);
 void fieldDrawCellXY(int x, int y);
 void fieldDrawCellInd(int index);
+void fieldDrawCellCustomInd(int index, const GRFRect* image);
 int field_width;
 int field_height;
 int field_size;
 int fieldCellByScreenXY(int screen_x, int screen_y);
-bool fieldIsOpen(int index);
-bool fieldIsClosed(int index);
+bool cellIsOpen(int index);
+bool cellIsClosed(int index);
 int fieldOpen(int index);
 void fieldMark(int index);
 
