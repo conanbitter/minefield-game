@@ -143,11 +143,15 @@ void fieldDrawCellCustomXY(int x, int y, GRFRect* image) {
         image);
 }
 
-void fieldDrawCellCustomInd(int index, const  GRFRect* image) {
-    atlas_draw(
-        field[index].x * FIELD_CELL_SIZE + FIELD_OFFSET_X,
-        field[index].y * FIELD_CELL_SIZE + FIELD_OFFSET_Y,
-        image);
+void fieldDrawCelPressedInd(int index) {
+    FieldCell* cell = &field[index];
+    int cell_x = cell->x * FIELD_CELL_SIZE + FIELD_OFFSET_X;
+    int cell_y = cell->y * FIELD_CELL_SIZE + FIELD_OFFSET_Y;
+    if (cell->status == CELL_STATUS_CLOSED) {
+        atlas_draw(cell_x, cell_y, &CELL_CLOSED_DOWN);
+    } else if (cell->status == CELL_STATUS_MARKED) {
+        atlas_draw(cell_x, cell_y, &CELL_MARK_DOWN);
+    }
 }
 
 int fieldCellByScreenXY(int screen_x, int screen_y) {
@@ -245,4 +249,18 @@ void fieldMark(int index) {
         fieldDrawCell(cell);
         grfEndDraw();
     }
+}
+
+bool fieldTryDiscover(int index, int (*candidates)[8]) {
+    FieldCell* cell = &field[index];
+    int flags = 0;
+    int cand_len = 0;
+    for (int i = 0;i < 8;i++) {
+        if (cell->neighbours[i] < 0) break;
+        FieldCell* other_cell = &field[cell->neighbours[i]];
+        if (other_cell->status == CELL_STATUS_FLAGGED) flags++;
+        if (other_cell->status == CELL_STATUS_CLOSED) (*candidates)[cand_len++] = cell->neighbours[i];
+    }
+    if (cand_len < 8) (*candidates)[cand_len] = -1;
+    return flags == cell->mines;
 }

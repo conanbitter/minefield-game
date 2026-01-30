@@ -20,7 +20,7 @@ void fieldInit(int width, int height, int mines);
 void fieldPopulate(int mines, int exclude_cell);
 void fieldDrawCellXY(int x, int y);
 void fieldDrawCellInd(int index);
-void fieldDrawCellCustomInd(int index, const GRFRect* image);
+void fieldDrawCelPressedInd(int index);
 int field_width;
 int field_height;
 int field_size;
@@ -29,5 +29,6 @@ bool cellIsOpen(int index);
 bool cellIsClosed(int index);
 int fieldOpen(int index);
 void fieldMark(int index);
+bool fieldTryDiscover(int index, int (*candidates)[8]);
 
 #endif
