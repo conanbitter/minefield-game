@@ -21,13 +21,25 @@ const GRFRect DIFFICULTY_EASY[2] = {
     $mode_easy,
     $mode_easy_down,
 };
+const GRFRect DIFFICULTY_EASY_ACTIVE[2] = {
+    $mode_easy_act,
+    $mode_easy_act_down,
+};
 const GRFRect DIFFICULTY_MEDIUM[2] = {
     $mode_medium,
     $mode_medium_down,
 };
+const GRFRect DIFFICULTY_MEDIUM_ACTIVE[2] = {
+    $mode_medium_act,
+    $mode_medium_act_down,
+};
 const GRFRect DIFFICULTY_HARD[2] = {
     $mode_hard,
     $mode_hard_down,
+};
+const GRFRect DIFFICULTY_HARD_ACTIVE[2] = {
+    $mode_hard_act,
+    $mode_hard_act_down,
 };
 
 const GRFRect SMILE_NORMAL[2] = {
