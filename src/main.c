@@ -108,6 +108,8 @@ void OnMouseDown(int button, int x, int y) {
                 fieldDrawCellPressedInd(candidates[i]);
             }
             grfEndDraw();
+        } else {
+            state = STATE_NORMAL;
         }
     }
 }
