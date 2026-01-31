@@ -176,6 +176,23 @@ void OnMouseUp(int button, int x, int y) {
     }
 }
 
+void OnLostFocus() {
+    if (state == STATE_BEFORE_OPEN) {
+        grfBeginDraw();
+        fieldDrawCellInd(selected);
+        grfEndDraw();
+    }
+    if (state == STATE_BEFORE_DISCOVER) {
+        grfBeginDraw();
+        for (int i = 0;i < 8;i++) {
+            if (candidates[i] < 0) break;
+            fieldDrawCellInd(candidates[i]);
+        }
+        grfEndDraw();
+    }
+    state = STATE_NORMAL;
+}
+
 
 void OnKeyDown(int key) {
 }
@@ -197,6 +214,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     grfSetOnKeyUp(&OnKeyUp);
     grfSetOnLoad(&OnLoad);
     grfSetOnExit(&OnFinish);
+    grfSetOnLostFocus(&OnLostFocus);
 
     grfSetFillColor(199, 207, 211);
     grfSetLineColor(36, 70, 93);

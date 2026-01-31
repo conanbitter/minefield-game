@@ -21,6 +21,8 @@ static MouseMoveCallback callbackOnMouseMove = &dummyOnMouseMove;
 static KeyboardCallback callbackOnKeyDown = &dummyOnKey;
 static KeyboardCallback callbackOnKeyUp = &dummyOnKey;
 static CommonCallback callbackOnUpdate = &dummyCallback;
+static CommonCallback callbackOnLostFocus = &dummyCallback;
+static CommonCallback callbackOnGetFocus = &dummyCallback;
 
 static int isLoaded = 0;
 static HBRUSH backgroundBrush;
@@ -100,6 +102,14 @@ void grfSetOnKeyDown(KeyboardCallback key_callback) {
 
 void grfSetOnKeyUp(KeyboardCallback key_callback) {
     callbackOnKeyUp = key_callback;
+}
+
+void grfSetOnLostFocus(CommonCallback focus_callback) {
+    callbackOnLostFocus = focus_callback;
+}
+
+void grfSetOnGetFocus(CommonCallback focus_callback) {
+    callbackOnGetFocus = focus_callback;
 }
 
 void grfSetOnUpdate(CommonCallback update_callback, int speed) {
@@ -449,6 +459,12 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
         return 0;
     case WM_KEYUP:
         callbackOnKeyUp(wParam);
+        return 0;
+    case WM_KILLFOCUS:
+        callbackOnLostFocus();
+        return 0;
+    case WM_SETFOCUS:
+        callbackOnGetFocus();
         return 0;
     case WM_TIMER:
         if (wParam == TIMER_UPDATE) {

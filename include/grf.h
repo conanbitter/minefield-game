@@ -240,6 +240,8 @@ void grfSetOnKeyDown(KeyboardCallback key_callback);
 void grfSetOnKeyUp(KeyboardCallback key_callback);
 void grfSetOnLoad(CommonCallback load_callback);
 void grfSetOnExit(CommonCallback exit_callback);
+void grfSetOnLostFocus(CommonCallback focus_callback);
+void grfSetOnGetFocus(CommonCallback focus_callback);
 
 GRFImage grfLoadImageFromFile(const wchar_t* filename);
 GRFImage grfLoadImageFromRes(const wchar_t* filename);
