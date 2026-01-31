@@ -67,7 +67,7 @@ void OnMouseDown(int button, int x, int y) {
             case GRF_BUTTON_LEFT:
                 if (cellIsClosed(cell_index)) {
                     grfBeginDraw();
-                    fieldDrawCelPressedInd(cell_index);
+                    fieldDrawCellPressedInd(cell_index);
                     grfEndDraw();
                     selected = cell_index;
                     hovering = true;
@@ -103,7 +103,7 @@ void OnMouseDown(int button, int x, int y) {
             grfBeginDraw();
             for (int i = 0;i < 8;i++) {
                 if (candidates[i] < 0) break;
-                fieldDrawCelPressedInd(candidates[i]);
+                fieldDrawCellPressedInd(candidates[i]);
             }
             grfEndDraw();
         }
@@ -124,7 +124,7 @@ void OnMouseMove(int x, int y) {
         }
         if (cell_index == selected && !hovering) {
             grfBeginDraw();
-            fieldDrawCelPressedInd(cell_index);
+            fieldDrawCellPressedInd(cell_index);
             grfEndDraw();
             hovering = true;
         }
@@ -144,7 +144,7 @@ void OnMouseMove(int x, int y) {
             grfBeginDraw();
             for (int i = 0;i < 8;i++) {
                 if (candidates[i] < 0) break;
-                fieldDrawCelPressedInd(candidates[i]);
+                fieldDrawCellPressedInd(candidates[i]);
             }
             grfEndDraw();
             hovering = true;
@@ -170,7 +170,18 @@ void OnMouseUp(int button, int x, int y) {
             }
         }
         break;
-
+    case STATE_BEFORE_DISCOVER:
+        if (button == GRF_BUTTON_LEFT || button == GRF_BUTTON_RIGHT) {
+            state = STATE_NORMAL;
+            int cell_index = fieldCellByScreenXY(x, y);
+            if (cell_index == selected) {
+                int res = fieldDiscover(cell_index);
+                if (res == RESULT_LOOSE) {
+                    state = STATE_GAME_OVER;
+                }
+            }
+        }
+        break;
     default:
         break;
     }

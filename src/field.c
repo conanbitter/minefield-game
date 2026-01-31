@@ -143,7 +143,7 @@ void fieldDrawCellCustomXY(int x, int y, GRFRect* image) {
         image);
 }
 
-void fieldDrawCelPressedInd(int index) {
+void fieldDrawCellPressedInd(int index) {
     FieldCell* cell = &field[index];
     int cell_x = cell->x * FIELD_CELL_SIZE + FIELD_OFFSET_X;
     int cell_y = cell->y * FIELD_CELL_SIZE + FIELD_OFFSET_Y;
@@ -263,4 +263,42 @@ bool fieldTryDiscover(int index, int (*candidates)[8]) {
     }
     if (cand_len < 8) (*candidates)[cand_len] = -1;
     return flags == cell->mines;
+}
+
+int fieldDiscover(int index) {
+    if (field[index].status != CELL_STATUS_OPENED) return RESULT_NORMAL;
+    int candidates[8];
+    if (!fieldTryDiscover(index, &candidates)) return RESULT_NORMAL;
+    bool has_mines = false;
+    grfBeginDraw();
+
+    first_mines = true;
+    cell_count = 0;
+    for (int i = 0;i < 8;i++) {
+        if (candidates[i] < 0) break;
+        FieldCell* dis_cell = &field[candidates[i]];
+        if (dis_cell->status != CELL_STATUS_CLOSED && dis_cell->status != CELL_STATUS_MARKED) {
+            continue;
+        }
+        dis_cell->status = CELL_STATUS_OPENED;
+        fieldDrawCell(dis_cell);
+        has_mines = has_mines || dis_cell->is_mine;
+        if (!dis_cell->is_mine) addCell(candidates[i]);
+    }
+    first_mines = false;
+    if (has_mines) {
+        for (int i = 0;i < field_size;i++) {
+            FieldCell* minecell = &field[i];
+            if (minecell->is_mine && minecell->status != CELL_STATUS_OPENED) {
+                minecell->status = CELL_STATUS_OPENED;
+                fieldDrawCell(minecell);
+            }
+        }
+        grfEndDraw();
+        return RESULT_LOOSE;
+    }
+    propagate();
+    grfEndDraw();
+
+    return RESULT_NORMAL;
 }
