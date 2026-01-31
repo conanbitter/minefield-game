@@ -268,7 +268,7 @@ bool fieldTryDiscover(int index, int (*candidates)[8]) {
 int fieldDiscover(int index) {
     if (field[index].status != CELL_STATUS_OPENED) return RESULT_NORMAL;
     int candidates[8];
-    if (!fieldTryDiscover(index, &candidates)) return RESULT_NORMAL;
+    if (!fieldTryDiscover(index, &candidates)) return RESULT_ABORT;
     bool has_mines = false;
     grfBeginDraw();
 

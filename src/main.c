@@ -73,7 +73,8 @@ void OnMouseDown(int button, int x, int y) {
                     hovering = true;
                     state = STATE_BEFORE_OPEN;
                 } else if (cellIsOpen(cell_index)) {
-                    if (fieldTryDiscover(cell_index, &candidates)) {
+                    fieldTryDiscover(cell_index, &candidates);
+                    if (candidates[0] > 0) {
                         state = STATE_MAYBE_DISCOVER;
                         other_mouse_button = button;
                         selected = cell_index;
@@ -83,7 +84,8 @@ void OnMouseDown(int button, int x, int y) {
                 break;
             case GRF_BUTTON_RIGHT:
                 if (cellIsOpen(cell_index)) {
-                    if (fieldTryDiscover(cell_index, &candidates)) {
+                    fieldTryDiscover(cell_index, &candidates);
+                    if (candidates[0] > 0) {
                         state = STATE_MAYBE_DISCOVER;
                         other_mouse_button = button;
                         selected = cell_index;
@@ -96,7 +98,7 @@ void OnMouseDown(int button, int x, int y) {
                 break;
             }
         }
-    } else if (state = STATE_MAYBE_DISCOVER && (button == GRF_BUTTON_LEFT || button == GRF_BUTTON_RIGHT)) {
+    } else if (state == STATE_MAYBE_DISCOVER && (button == GRF_BUTTON_LEFT || button == GRF_BUTTON_RIGHT)) {
         int cell_index = fieldCellByScreenXY(x, y);
         if (other_mouse_button != button && cell_index == selected) {
             state = STATE_BEFORE_DISCOVER;
@@ -178,6 +180,13 @@ void OnMouseUp(int button, int x, int y) {
                 int res = fieldDiscover(cell_index);
                 if (res == RESULT_LOOSE) {
                     state = STATE_GAME_OVER;
+                } else if (res == RESULT_ABORT) {
+                    grfBeginDraw();
+                    for (int i = 0;i < 8;i++) {
+                        if (candidates[i] < 0) break;
+                        fieldDrawCellInd(candidates[i]);
+                    }
+                    grfEndDraw();
                 }
             }
         }

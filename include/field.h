@@ -15,6 +15,7 @@
 #define RESULT_NORMAL (0)
 #define RESULT_WIN (1)
 #define RESULT_LOOSE (2)
+#define RESULT_ABORT (3)
 
 void fieldInit(int width, int height, int mines);
 void fieldPopulate(int mines, int exclude_cell);
