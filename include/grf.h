@@ -218,7 +218,7 @@ typedef struct {
 
 typedef __GRFImageData* GRFImage;
 
-typedef struct {
+typedef struct GRFRect {
     int x;
     int y;
     int w;
