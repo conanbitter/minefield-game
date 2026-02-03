@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "field.h"
 #include "atlas.h"
+#include "ui.h"
 
 #define BORDER (3)
 
@@ -17,6 +18,7 @@ HINSTANCE app_instance;
 #define STATE_BEFORE_OPEN (2)
 #define STATE_MAYBE_DISCOVER (3)
 #define STATE_BEFORE_DISCOVER (4)
+#define STATE_BUTTON_PRESSED (5)
 
 int current_difficulty = 1;
 int state = STATE_NORMAL;
@@ -24,11 +26,36 @@ int selected = -1;
 int candidates[8];
 bool hovering = false;
 int other_mouse_button = 0;
+Button* selected_button;
 
-void new_game(int difficulty) {
+Button buttons[4];
+
+#define BTN_SMILE (0)
+#define BTN_EASY (1)
+#define BTN_MEDIUM (2)
+#define BTN_HARD (3)
+
+void newGame(int difficulty) {
+    grfBeginDraw();
+    grfClear();
     switch (difficulty) {
     case 1:
         fieldInit(9, 9, 10);
+        buttons[BTN_SMILE].x = 190;
+        buttons[BTN_SMILE].y = 2;
+        buttons[BTN_SMILE].face = SMILE_NORMAL;
+        buttons[BTN_EASY].x = 42;
+        buttons[BTN_EASY].y = 530;
+        buttons[BTN_EASY].face = DIFFICULTY_EASY_ACTIVE;
+        buttons[BTN_MEDIUM].x = 173;
+        buttons[BTN_MEDIUM].y = 530;
+        buttons[BTN_MEDIUM].face = DIFFICULTY_MEDIUM;
+        buttons[BTN_HARD].x = 303;
+        buttons[BTN_HARD].y = 530;
+        buttons[BTN_HARD].face = DIFFICULTY_HARD;
+        for (int i = 0;i < 4;i++) {
+            btnDraw(&buttons[i]);
+        }
         break;
     case 2:
         fieldInit(16, 16, 40);
@@ -37,9 +64,8 @@ void new_game(int difficulty) {
         fieldInit(30, 16, 40);
         break;
     }
+    current_difficulty = difficulty;
     fieldPopulate(10, 0);
-    grfBeginDraw();
-    grfClear();
     grfMoveTo(FIELD_OFFSET_X - 1, FIELD_OFFSET_Y - 1);
     grfLineTo(field_width * FIELD_CELL_SIZE + FIELD_OFFSET_X, FIELD_OFFSET_Y - 1);
     grfLineTo(field_width * FIELD_CELL_SIZE + FIELD_OFFSET_X, field_height * FIELD_CELL_SIZE + FIELD_OFFSET_Y);
@@ -52,10 +78,42 @@ void new_game(int difficulty) {
     state = STATE_NORMAL;
 }
 
+void onButtonPress(int id) {
+    switch (id)
+    {
+    case BTN_SMILE:
+        newGame(current_difficulty);
+        break;
+    case BTN_EASY:
+        selected = -1;
+        break;
+    case BTN_MEDIUM:
+        selected = -1;
+        break;
+    case BTN_HARD:
+        selected = -1;
+        break;
+
+    default:
+        break;
+    }
+}
 
 void OnLoad() {
+    buttons[BTN_SMILE].id = BTN_SMILE;
+    buttons[BTN_SMILE].width = SMILE_NORMAL.normal->w;
+    buttons[BTN_SMILE].height = SMILE_NORMAL.normal->h;
+    buttons[BTN_EASY].id = BTN_EASY;
+    buttons[BTN_EASY].width = DIFFICULTY_EASY.normal->w;
+    buttons[BTN_EASY].height = DIFFICULTY_EASY.normal->h;
+    buttons[BTN_MEDIUM].id = BTN_MEDIUM;
+    buttons[BTN_MEDIUM].width = DIFFICULTY_MEDIUM.normal->w;
+    buttons[BTN_MEDIUM].height = DIFFICULTY_MEDIUM.normal->h;
+    buttons[BTN_HARD].id = BTN_HARD;
+    buttons[BTN_HARD].width = DIFFICULTY_HARD.normal->w;
+    buttons[BTN_HARD].height = DIFFICULTY_HARD.normal->h;
     atlas_init();
-    new_game(1);
+    newGame(1);
 }
 
 void OnMouseDown(int button, int x, int y) {
@@ -68,6 +126,7 @@ void OnMouseDown(int button, int x, int y) {
                 if (cellIsClosed(cell_index)) {
                     grfBeginDraw();
                     fieldDrawCellPressedInd(cell_index);
+                    btnDrawCustom(&buttons[BTN_SMILE], &SMILE_OPEN);
                     grfEndDraw();
                     selected = cell_index;
                     hovering = true;
@@ -97,6 +156,18 @@ void OnMouseDown(int button, int x, int y) {
             default:
                 break;
             }
+        } else {
+            for (int i = 0;i < 4;i++) {
+                if (btnIsInside(&buttons[i], x, y)) {
+                    selected_button = &buttons[i];
+                    hovering = true;
+                    state = STATE_BUTTON_PRESSED;
+                    grfBeginDraw();
+                    btnDrawPressed(selected_button);
+                    grfEndDraw();
+                    break;
+                }
+            }
         }
     } else if (state == STATE_MAYBE_DISCOVER && (button == GRF_BUTTON_LEFT || button == GRF_BUTTON_RIGHT)) {
         int cell_index = fieldCellByScreenXY(x, y);
@@ -110,6 +181,18 @@ void OnMouseDown(int button, int x, int y) {
             grfEndDraw();
         } else {
             state = STATE_NORMAL;
+        }
+    } else if (state == STATE_GAME_OVER) {
+        for (int i = 0;i < 4;i++) {
+            if (btnIsInside(&buttons[i], x, y)) {
+                selected_button = &buttons[i];
+                hovering = true;
+                state = STATE_BUTTON_PRESSED;
+                grfBeginDraw();
+                btnDrawPressed(selected_button);
+                grfEndDraw();
+                break;
+            }
         }
     }
 }
@@ -154,6 +237,22 @@ void OnMouseMove(int x, int y) {
             hovering = true;
         }
         break;
+    case STATE_BUTTON_PRESSED:
+        if (btnIsInside(selected_button, x, y)) {
+            if (!hovering) {
+                grfBeginDraw();
+                btnDrawPressed(selected_button);
+                grfEndDraw();
+                hovering = true;
+            }
+        } else {
+            if (hovering) {
+                grfBeginDraw();
+                btnDraw(selected_button);
+                grfEndDraw();
+                hovering = false;
+            }
+        }
     default:
         break;
     }
@@ -166,6 +265,9 @@ void OnMouseUp(int button, int x, int y) {
         if (button == GRF_BUTTON_LEFT) {
             state = STATE_NORMAL;
             int cell_index = fieldCellByScreenXY(x, y);
+            grfBeginDraw();
+            btnDraw(&buttons[BTN_SMILE]);
+            grfEndDraw();
             if (cell_index == selected) {
                 int res = fieldOpen(cell_index);
                 if (res == RESULT_LOOSE) {
@@ -193,6 +295,16 @@ void OnMouseUp(int button, int x, int y) {
             }
         }
         break;
+    case STATE_BUTTON_PRESSED:
+        if (hovering) {
+            grfBeginDraw();
+            btnDraw(selected_button);
+            grfEndDraw();
+        }
+        state = STATE_NORMAL;
+        if (btnIsInside(selected_button, x, y)) {
+            onButtonPress(selected_button->id);
+        }
     default:
         break;
     }

@@ -8,6 +8,7 @@ set(INCLUDE_FILES
     grf.h
     field.h
     atlas.h
+    ui.h
 )
 
 set(SRC_FILES
@@ -15,6 +16,7 @@ set(SRC_FILES
     main.c
     field.c
     atlas.c
+    ui.c
 )
 
 list(TRANSFORM INCLUDE_FILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/include/)
