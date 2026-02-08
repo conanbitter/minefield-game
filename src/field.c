@@ -210,6 +210,7 @@ static bool checkWin() {
             return false;
         }
     }
+    return true;
 }
 
 int fieldOpen(int index) {
