@@ -203,6 +203,15 @@ static propagate() {
     }
 }
 
+static bool checkWin() {
+    for (int i = 0;i < field_size;i++) {
+        FieldCell* cell = &field[i];
+        if ((cell->is_mine && cell->status != CELL_STATUS_FLAGGED) || (!cell->is_mine && cell->status != CELL_STATUS_OPENED)) {
+            return false;
+        }
+    }
+}
+
 int fieldOpen(int index) {
     int result = RESULT_NORMAL;
     FieldCell* current = &field[index];
@@ -233,6 +242,11 @@ int fieldOpen(int index) {
     }
 
     grfEndDraw();
+
+    if (result == RESULT_NORMAL) {
+        if (checkWin()) return RESULT_WIN;
+    }
+
     return result;
 }
 
@@ -299,6 +313,8 @@ int fieldDiscover(int index) {
     }
     propagate();
     grfEndDraw();
+
+    if (checkWin()) return RESULT_WIN;
 
     return RESULT_NORMAL;
 }

@@ -270,8 +270,13 @@ void OnMouseUp(int button, int x, int y) {
             grfEndDraw();
             if (cell_index == selected) {
                 int res = fieldOpen(cell_index);
-                if (res == RESULT_LOOSE) {
+                if (res != RESULT_NORMAL) {
                     state = STATE_GAME_OVER;
+                    if (res == RESULT_LOOSE) buttons[BTN_SMILE].face = SMILE_DEAD;
+                    if (res == RESULT_WIN) buttons[BTN_SMILE].face = SMILE_WIN;
+                    grfBeginDraw();
+                    btnDraw(&buttons[BTN_SMILE]);
+                    grfEndDraw();
                 }
             }
         }
@@ -282,8 +287,13 @@ void OnMouseUp(int button, int x, int y) {
             int cell_index = fieldCellByScreenXY(x, y);
             if (cell_index == selected) {
                 int res = fieldDiscover(cell_index);
-                if (res == RESULT_LOOSE) {
+                if (res == RESULT_LOOSE || res == RESULT_WIN) {
                     state = STATE_GAME_OVER;
+                    if (res == RESULT_LOOSE) buttons[BTN_SMILE].face = SMILE_DEAD;
+                    if (res == RESULT_WIN) buttons[BTN_SMILE].face = SMILE_WIN;
+                    grfBeginDraw();
+                    btnDraw(&buttons[BTN_SMILE]);
+                    grfEndDraw();
                 } else if (res == RESULT_ABORT) {
                     grfBeginDraw();
                     for (int i = 0;i < 8;i++) {
@@ -306,6 +316,7 @@ void OnMouseUp(int button, int x, int y) {
             onButtonPress(selected_button->id);
         }
     default:
+        if (state != STATE_GAME_OVER) state = STATE_NORMAL;
         break;
     }
 }
